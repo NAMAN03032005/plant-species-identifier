@@ -40,7 +40,8 @@ CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
 
 # Robust Project Relative Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(BASE_DIR, 'model', 'leafscan_mobilenetv2.keras')
+MODEL_PATH_KERAS = os.path.join(BASE_DIR, 'model', 'leafscan_mobilenetv2.keras')
+MODEL_PATH_TFLITE = os.path.join(BASE_DIR, 'model', 'leafscan_mobilenetv2.tflite')
 CLASS_NAMES_PATH = os.path.join(BASE_DIR, 'model', 'class_names.json')
 
 # File Validation Constraints
@@ -48,43 +49,73 @@ ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp'}
 MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB limit
 
 # Module Globals for Loaded Model and Labels
-MODEL = None
+MODEL_KERAS = None
+TFLITE_INTERPRETER = None
+TFLITE_INPUT_DETAILS = None
+TFLITE_OUTPUT_DETAILS = None
+MODEL_TYPE = None  # 'tflite' or 'keras'
 CLASS_NAMES = []
 
 
 def load_model_and_labels():
     """
-    Load Keras model weights and species class labels ONCE at application startup.
+    Load species class labels and ML model ONCE at application startup.
+    Tries TFLite interpreter first (ultra-fast, low memory footprint for cloud deployment),
+    with automatic fallback to full TensorFlow Keras model.
     """
-    global MODEL, CLASS_NAMES
-
-    if not os.path.exists(MODEL_PATH):
-        print(f"[Error] Keras model weights not found at: {MODEL_PATH}")
-        return False
+    global MODEL_KERAS, TFLITE_INTERPRETER, TFLITE_INPUT_DETAILS, TFLITE_OUTPUT_DETAILS, MODEL_TYPE, CLASS_NAMES
 
     if not os.path.exists(CLASS_NAMES_PATH):
         print(f"[Error] Class names JSON not found at: {CLASS_NAMES_PATH}")
         return False
 
     try:
-        print(f"[Startup] Loading MobileNetV2 model from {MODEL_PATH}...")
-        MODEL = tf.keras.models.load_model(MODEL_PATH)
-        
         with open(CLASS_NAMES_PATH, 'r') as f:
             CLASS_NAMES = json.load(f)
-
-        print(f"[Startup] Successfully loaded model with {len(CLASS_NAMES)} species classes.")
-        
-        # Execute warm-up prediction at startup to compile TF C++ kernels before serving requests
-        print("[Startup] Executing model warm-up prediction...")
-        dummy_input = np.zeros((1, 224, 224, 3), dtype=np.float32)
-        _ = MODEL(dummy_input, training=False)
-        print("[Startup] Model warm-up completed successfully.")
-        
-        return True
+        print(f"[Startup] Successfully loaded {len(CLASS_NAMES)} species classes.")
     except Exception as e:
-        print(f"[Error] Failed to load model on startup: {e}")
+        print(f"[Error] Failed to load class names JSON: {e}")
         return False
+
+    # 1. Try loading TFLite model first (ultra-fast & < 20 MB RAM usage)
+    if os.path.exists(MODEL_PATH_TFLITE):
+        try:
+            print(f"[Startup] Loading TFLite model from {MODEL_PATH_TFLITE}...")
+            TFLITE_INTERPRETER = tf.lite.Interpreter(model_path=MODEL_PATH_TFLITE)
+            TFLITE_INTERPRETER.allocate_tensors()
+            TFLITE_INPUT_DETAILS = TFLITE_INTERPRETER.get_input_details()
+            TFLITE_OUTPUT_DETAILS = TFLITE_INTERPRETER.get_output_details()
+            MODEL_TYPE = 'tflite'
+            
+            # Execute warm-up prediction at startup
+            print("[Startup] Executing TFLite warm-up prediction...")
+            dummy_input = np.zeros((1, 224, 224, 3), dtype=np.float32)
+            TFLITE_INTERPRETER.set_tensor(TFLITE_INPUT_DETAILS[0]['index'], dummy_input)
+            TFLITE_INTERPRETER.invoke()
+            _ = TFLITE_INTERPRETER.get_tensor(TFLITE_OUTPUT_DETAILS[0]['index'])
+            print("[Startup] TFLite model initialized and warmed up successfully.")
+            return True
+        except Exception as e:
+            print(f"[Startup Warning] Could not load TFLite model: {e}")
+
+    # 2. Fallback to Keras model
+    if os.path.exists(MODEL_PATH_KERAS):
+        try:
+            print(f"[Startup] Loading MobileNetV2 Keras model from {MODEL_PATH_KERAS}...")
+            MODEL_KERAS = tf.keras.models.load_model(MODEL_PATH_KERAS)
+            MODEL_TYPE = 'keras'
+            
+            print("[Startup] Executing Keras model warm-up prediction...")
+            dummy_input = np.zeros((1, 224, 224, 3), dtype=np.float32)
+            _ = MODEL_KERAS(dummy_input, training=False)
+            print("[Startup] Keras model warm-up completed successfully.")
+            return True
+        except Exception as e:
+            print(f"[Error] Failed to load Keras model: {e}")
+            return False
+
+    print("[Error] No model file (.tflite or .keras) found in model directory.")
+    return False
 
 
 # Execute model loading at server initialization
@@ -106,7 +137,8 @@ def health_check():
     return jsonify({
         "status": "success",
         "message": "Plant Identification API is running",
-        "model_loaded": MODEL is not None,
+        "model_loaded": MODEL_TYPE is not None,
+        "model_type": MODEL_TYPE,
         "num_classes": len(CLASS_NAMES) if CLASS_NAMES else 0
     }), 200
 
@@ -165,7 +197,7 @@ def predict_plant_species():
     Preprocesses image to 224x224 RGB, performs MobileNetV2 model inference,
     and returns top-1 predicted species name and top-3 confidence scores.
     """
-    if MODEL is None or not CLASS_NAMES:
+    if MODEL_TYPE is None or not CLASS_NAMES:
         return jsonify({
             "status": "error",
             "message": "Model is not loaded on server. Please check model files."
@@ -203,8 +235,13 @@ def predict_plant_species():
         img_array = np.array(img_resized, dtype=np.float32)
         img_batch = np.expand_dims(img_array, axis=0)
 
-        # 4. Perform Real Deep Learning Inference (Direct Tensor Call for ultra-fast low-memory execution)
-        preds = MODEL(img_batch, training=False).numpy()[0]
+        # 4. Perform Real Deep Learning Inference
+        if MODEL_TYPE == 'tflite':
+            TFLITE_INTERPRETER.set_tensor(TFLITE_INPUT_DETAILS[0]['index'], img_batch)
+            TFLITE_INTERPRETER.invoke()
+            preds = TFLITE_INTERPRETER.get_tensor(TFLITE_OUTPUT_DETAILS[0]['index'])[0]
+        else:
+            preds = MODEL_KERAS(img_batch, training=False).numpy()[0]
 
         top1_idx = int(np.argmax(preds))
         top1_species = CLASS_NAMES[top1_idx]
@@ -226,7 +263,8 @@ def predict_plant_species():
                 "species": top1_species,
                 "confidence": top1_confidence
             },
-            "top_predictions": top_predictions
+            "top_predictions": top_predictions,
+            "engine": MODEL_TYPE
         }), 200
 
     except Exception as e:
@@ -241,3 +279,4 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print(f"Starting LeafScan Flask API server on http://0.0.0.0:{port}...")
     app.run(host='0.0.0.0', port=port, debug=False)
+
