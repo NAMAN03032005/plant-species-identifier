@@ -1,0 +1,47 @@
+{
+  "source_model": "model/leafscan_mobilenetv2.keras",
+  "tflite_standard_model": "model/leafscan_mobilenetv2.tflite",
+  "tflite_float16_model": "model/leafscan_mobilenetv2_float16.tflite",
+  "input_shape": [
+    1,
+    224,
+    224,
+    3
+  ],
+  "input_dtype": "float32",
+  "output_shape": [
+    1,
+    10
+  ],
+  "output_dtype": "float32",
+  "num_classes": 10,
+  "class_names": [
+    "Apple___Apple_scab",
+    "Apple___Black_rot",
+    "Apple___healthy",
+    "Cherry___healthy",
+    "Corn___Common_rust",
+    "Corn___healthy",
+    "Grape___Black_rot",
+    "Grape___healthy",
+    "Peach___Bacterial_spot",
+    "Potato___Late_blight"
+  ],
+  "preprocessing": "224x224 RGB float32 scaling via tf.keras.applications.mobilenet_v2.preprocess_input",
+  "original_keras_size_bytes": 9794355,
+  "original_keras_size_mb": 9.34,
+  "tflite_standard_size_bytes": 8942284,
+  "tflite_standard_size_mb": 8.53,
+  "tflite_standard_size_reduction": "8.70%",
+  "tflite_float16_size_bytes": 4538308,
+  "tflite_float16_size_mb": 4.33,
+  "tflite_float16_size_reduction": "53.66%",
+  "keras_test_accuracy": "50.00%",
+  "tflite_standard_test_accuracy": "46.67%",
+  "tflite_standard_accuracy_diff": "-3.33%",
+  "tflite_standard_parity_match": "10/10 (100.0%)",
+  "tflite_float16_test_accuracy": "35.00%",
+  "tflite_float16_accuracy_diff": "-15.00%",
+  "tflite_float16_parity_match": "6/10 (60.0%)",
+  "conversion_timestamp": "2026-09-08 16:21:00"
+}

@@ -1,0 +1,39 @@
+{
+  "model_name": "LeafScan MobileNetV2",
+  "architecture": "MobileNetV2 Transfer Learning",
+  "pretrained_weights": "ImageNet",
+  "input_shape": [
+    224,
+    224,
+    3
+  ],
+  "num_classes": 10,
+  "class_names": [
+    "Apple___Apple_scab",
+    "Apple___Black_rot",
+    "Apple___healthy",
+    "Cherry___healthy",
+    "Corn___Common_rust",
+    "Corn___healthy",
+    "Grape___Black_rot",
+    "Grape___healthy",
+    "Peach___Bacterial_spot",
+    "Potato___Late_blight"
+  ],
+  "batch_size": 16,
+  "phase1_max_epochs": 12,
+  "phase2_max_epochs": 8,
+  "phase1_epochs_completed": 12,
+  "phase2_epochs_completed": 5,
+  "training_time_minutes": 3.5,
+  "fine_tuning_used": true,
+  "unfrozen_layers": 30,
+  "test_metrics": {
+    "test_loss": 1.4701,
+    "test_accuracy": 0.5,
+    "precision": 0.5656,
+    "recall": 0.5,
+    "f1_score": 0.4623
+  },
+  "trained_at": "2026-09-08 15:46:37"
+}

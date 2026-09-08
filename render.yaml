@@ -1,0 +1,15 @@
+# Render Infrastructure as Code (Blueprint) Specification for LeafScan
+services:
+  - type: web
+    name: leafscan-backend
+    runtime: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: gunicorn --chdir backend app:app --bind 0.0.0.0:$PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+      - key: FRONTEND_ORIGIN
+        value: http://localhost:5173

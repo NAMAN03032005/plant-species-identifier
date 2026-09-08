@@ -1,0 +1,12 @@
+# LeafScan Flask Backend Requirements (Render Production Ready)
+flask>=3.0.0
+flask-cors>=4.0.0
+gunicorn>=21.2.0
+Pillow>=10.0.0
+tensorflow>=2.15.0
+numpy>=1.23.0
+matplotlib>=3.7.0
+scikit-learn>=1.2.0
+seaborn>=0.12.0
+werkzeug>=3.0.0
+requests>=2.31.0
