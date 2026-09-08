@@ -115,7 +115,7 @@ export default function LeafUploader({
       const formData = new FormData();
       formData.append('image', selectedImage.file);
 
-      const apiBase = import.meta.env.VITE_API_URL || '';
+      const apiBase = import.meta.env.VITE_API_URL || 'https://plant-species-identifier.onrender.com';
       const res = await fetch(`${apiBase}/api/predict`, {
         method: 'POST',
         body: formData,

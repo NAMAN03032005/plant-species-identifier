@@ -13,3 +13,12 @@ services:
         value: 3.11.8
       - key: FRONTEND_ORIGIN
         value: http://localhost:5173
+  - type: static
+    name: leafscan-frontend
+    region: singapore
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://plant-species-identifier.onrender.com
+

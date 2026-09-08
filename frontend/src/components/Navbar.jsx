@@ -16,7 +16,7 @@ export default function Navbar() {
 
   const checkHealth = async () => {
     setIsRefreshing(true);
-    const apiBase = import.meta.env.VITE_API_URL || '';
+    const apiBase = import.meta.env.VITE_API_URL || 'https://plant-species-identifier.onrender.com';
     try {
       const res = await fetch(`${apiBase}/api/health`);
       if (res.ok) {
