@@ -122,6 +122,17 @@ The trained model was exported to TensorFlow Lite format using `scripts/convert_
 
 ---
 
+## ☁️ Live Cloud Deployment (Render Web Service)
+
+The Flask REST API microservice is live on **Render Cloud Web Services**:
+
+- **Live Service Base URL**: [https://plant-species-identifier.onrender.com](https://plant-species-identifier.onrender.com)
+- **Live Health Check**: `GET https://plant-species-identifier.onrender.com/api/health`
+- **Live Prediction API**: `POST https://plant-species-identifier.onrender.com/api/predict`
+- **Deployment Spec & Logs**: See [docs/render_deployment.md](file:///f:/DOC/My%20Projects/plant-species-identifier/docs/render_deployment.md)
+
+---
+
 ## 🚀 How to Run Locally
 
 ### 1. Backend Setup (Flask API)
@@ -152,6 +163,7 @@ npm run dev
 > Vite dev server runs at `http://localhost:5173`
 
 ---
+
 
 ## 🧪 Testing & Verification Scripts
 
