@@ -30,8 +30,14 @@ import tensorflow as tf
 # Initialize Flask Application
 app = Flask(__name__)
 
-# Configure CORS to allow local React development frontend origin and production Render origin
-allowed_origins = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5000"]
+# Configure CORS to allow local React development frontend origin and production Render static site origins
+allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5000",
+    "https://plant-species-identifier-1.onrender.com",
+    "https://plant-species-identifier-frontend.onrender.com"
+]
 frontend_origin = os.environ.get('FRONTEND_ORIGIN')
 if frontend_origin:
     allowed_origins.append(frontend_origin.rstrip('/'))
