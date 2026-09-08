@@ -74,6 +74,13 @@ def load_model_and_labels():
             CLASS_NAMES = json.load(f)
 
         print(f"[Startup] Successfully loaded model with {len(CLASS_NAMES)} species classes.")
+        
+        # Execute warm-up prediction at startup to compile TF C++ kernels before serving requests
+        print("[Startup] Executing model warm-up prediction...")
+        dummy_input = np.zeros((1, 224, 224, 3), dtype=np.float32)
+        _ = MODEL.predict(dummy_input, verbose=0)
+        print("[Startup] Model warm-up completed successfully.")
+        
         return True
     except Exception as e:
         print(f"[Error] Failed to load model on startup: {e}")
