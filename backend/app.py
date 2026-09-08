@@ -78,7 +78,7 @@ def load_model_and_labels():
         # Execute warm-up prediction at startup to compile TF C++ kernels before serving requests
         print("[Startup] Executing model warm-up prediction...")
         dummy_input = np.zeros((1, 224, 224, 3), dtype=np.float32)
-        _ = MODEL.predict(dummy_input, verbose=0)
+        _ = MODEL(dummy_input, training=False)
         print("[Startup] Model warm-up completed successfully.")
         
         return True
@@ -203,8 +203,8 @@ def predict_plant_species():
         img_array = np.array(img_resized, dtype=np.float32)
         img_batch = np.expand_dims(img_array, axis=0)
 
-        # 4. Perform Real Deep Learning Inference
-        preds = MODEL.predict(img_batch, verbose=0)[0]
+        # 4. Perform Real Deep Learning Inference (Direct Tensor Call for ultra-fast low-memory execution)
+        preds = MODEL(img_batch, training=False).numpy()[0]
 
         top1_idx = int(np.argmax(preds))
         top1_species = CLASS_NAMES[top1_idx]
