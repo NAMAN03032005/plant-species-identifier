@@ -42,7 +42,7 @@ frontend_origin = os.environ.get('FRONTEND_ORIGIN')
 if frontend_origin:
     allowed_origins.append(frontend_origin.rstrip('/'))
 
-CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Robust Project Relative Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
