@@ -65,3 +65,5 @@ dataset/test/*
 .DS_Store
 Thumbs.db
 *.swp
+scratch/
+
