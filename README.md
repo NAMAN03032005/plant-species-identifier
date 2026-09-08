@@ -122,14 +122,15 @@ The trained model was exported to TensorFlow Lite format using `scripts/convert_
 
 ---
 
-## ☁️ Live Cloud Deployment (Render Web Service)
+## ☁️ Live Cloud Deployment (Render Platform)
 
-The Flask REST API microservice is live on **Render Cloud Web Services**:
+The full-stack application is live on **Render Cloud Platform**:
 
-- **Live Service Base URL**: [https://plant-species-identifier.onrender.com](https://plant-species-identifier.onrender.com)
+- **🌐 Live React PWA Frontend**: [https://plant-species-identifier-1.onrender.com](https://plant-species-identifier-1.onrender.com)
+- **⚡ Live Flask REST Microservice**: [https://plant-species-identifier.onrender.com](https://plant-species-identifier.onrender.com)
 - **Live Health Check**: `GET https://plant-species-identifier.onrender.com/api/health`
 - **Live Prediction API**: `POST https://plant-species-identifier.onrender.com/api/predict`
-- **Deployment Spec & Logs**: See [docs/render_deployment.md](file:///f:/DOC/My%20Projects/plant-species-identifier/docs/render_deployment.md)
+- **Deployment Specification & Logs**: See [docs/render_deployment.md](file:///f:/DOC/My%20Projects/plant-species-identifier/docs/render_deployment.md)
 
 ---
 
